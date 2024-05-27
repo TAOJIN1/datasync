@@ -186,6 +186,36 @@ public class IndexController implements BeanNameAware {
         }
     }
 
+
+    /**
+     * 同步整表数据 不重建表
+     *
+     * @param tableName 表名称
+     * @Author: Lanvo
+     * @return:
+     * @Date: 2019/7/1  16:30
+     * @Description:
+     */
+    @RequestMapping(value = "/doSyncDataNot", method = RequestMethod.POST)
+    @ResponseBody
+    public Result doSyncDataNot(@RequestParam("tableName") String tableName) {
+        try {
+            //查询本地数据库中是否存在该表，不存在则直接新建表，存在则备份
+            int count = checkTable(tableName);
+            if (count == 0) {
+               return Result.error(NEW_TABLE_ERROR_CODE, "数据表不存在");
+            }
+            //插入数据
+            log.info("{}:开始更新，往表:{}中插入数据", beanName, tableName);
+            int dataCount = insertDataToTable(tableName);
+            log.info("{}:同步成功，往表:{}插入了{}条数据", beanName, tableName, dataCount);
+            return Result.success("同步成功");
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.info("{}:同步:{} 表失败", beanName, tableName);
+            return Result.error("同步失败");
+        }
+    }
     /**
      * 追加数据到现有表中，如果表中数据存在重复的则更新该条数据
      *
